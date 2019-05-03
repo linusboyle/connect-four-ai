@@ -87,13 +87,21 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Judge.cpp" />
+    <ClCompile Include="config.cpp" />
+    <ClCompile Include="judge.cpp" />
+    <ClCompile Include="node.cpp" />
     <ClCompile Include="Strategy.cpp" />
+    <ClCompile Include="UCT.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Judge.h" />
-    <ClInclude Include="Point.h" />
+    <ClInclude Include="config.hpp" />
+    <ClInclude Include="judge.hpp" />
+    <ClInclude Include="mempool.hpp" />
+    <ClInclude Include="node.hpp" />
+    <ClInclude Include="point.hpp" />
     <ClInclude Include="Strategy.h" />
+    <ClInclude Include="timer.hpp" />
+    <ClInclude Include="UCT.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

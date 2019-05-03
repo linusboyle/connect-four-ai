@@ -1,6 +1,11 @@
-#include <iostream>
-#include "Point.h"
 #include "Strategy.h"
+#include "UCT.hpp"
+#include <cstring>
+
+#ifndef CUSTOM_MAIN
+#include <conio.h>
+#include <atlstr.h>
+#endif
 
 using namespace std;
 
@@ -25,65 +30,47 @@ using namespace std;
 	output:
 		你的落子点Point
 */
+
+//static void printBoard(int* board, int row, int column) {
+//	_cprintf("received board:\n");
+//	for (int i = 0; i < row; ++i) {
+//		for (int j = 0; j < column; ++j) {
+//			_cprintf("%d ", board[i * column + j]);
+//		}
+//		_cprintf("\n");
+//	}
+//}
+
+//static void printTops(int* tops, int column) {
+//	_cprintf("received tops:\n");
+//	for (int i = 0; i < column; ++i) {
+//		_cprintf("%d ", tops[i]);
+//	}
+//	_cprintf("\n");
+//}
+
 extern "C" __declspec(dllexport) Point* getPoint(const int M, const int N, const int* top, const int* _board, 
 	const int lastX, const int lastY, const int noX, const int noY){
-	/*
-		不要更改这段代码
-	*/
-	int x = -1, y = -1;//最终将你的落子点存到x,y中
-	int** board = new int*[M];
-	for(int i = 0; i < M; i++){
-		board[i] = new int[N];
-		for(int j = 0; j < N; j++){
-			board[i][j] = _board[i * N + j];
-		}
-	}
-	
-	/*
-		根据你自己的策略来返回落子点,也就是根据你的策略完成对x,y的赋值
-		该部分对参数使用没有限制，为了方便实现，你可以定义自己新的类、.h文件、.cpp文件
-	*/
-	//Add your own code below
-	/*
-     //a naive example
-	for (int i = N-1; i >= 0; i--) {
-		if (top[i] > 0) {
-			x = top[i] - 1;
-			y = i;
-			break;
-		}
-	}
-    */
-	
-	
-	/*
-		不要更改这段代码
-	*/
-	clearArray(M, N, board);
-	return new Point(x, y);
+	UCTTree t(M, N, { noX, noY });
+#ifndef CUSTOM_MAIN
+	AllocConsole();
+#endif
+	// _cprintf("%d %d\n", M, N);
+
+	int* board = new int[sizeof(int) * M * N];
+	int* tops = new int[sizeof(int) * N];
+	std::memcpy(board, _board, sizeof(int) * M * N);
+	std::memcpy(tops, top, sizeof(int) * N);
+
+	// printBoard(board, M, N);
+	// printTops(tops, N);
+
+	Point pos = t.search(board, tops, { lastX, lastY });
+	return new Point(pos.x, pos.y);
 }
 
 
-/*
-	getPoint函数返回的Point指针是在本dll模块中声明的，为避免产生堆错误，应在外部调用本dll中的
-	函数来释放空间，而不应该在外部直接delete
-*/
 extern "C" __declspec(dllexport) void clearPoint(Point* p){
 	delete p;
 	return;
 }
-
-/*
-	清除top和board数组
-*/
-void clearArray(int M, int N, int** board){
-	for(int i = 0; i < M; i++){
-		delete[] board[i];
-	}
-	delete[] board;
-}
-
-
-/*
-	添加你自己的辅助函数，你可以声明自己的类、函数，添加新的.h .cpp文件来辅助实现你的想法
-*/
