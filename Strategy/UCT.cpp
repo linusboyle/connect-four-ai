@@ -2,28 +2,35 @@
 #include "node.hpp"
 #include "judge.hpp"
 #include "timer.hpp"
+
 #ifndef CUSTOM_MAIN
 #include "conio.h"
 #endif
+
 #include <cstring>
 #include <cstdlib>
 #include <tuple>
+#include <cmath>
 
-static double getProfit(int* board, int* tops, Point pos, Player p) {
+static constexpr double max_search_time = 2.0;
+static constexpr double ucb_coefficient = 1.0;
+
+// need refactor
+static bool checkEnd(int* board, int* tops, Point pos, Player p) {
     if (p == Player::P_RIVAL && userWin(pos.x, pos.y, config::row, config::column, board)) 
-        return -1;
+        return true;
     if (p == Player::P_SELF && machineWin(pos.x, pos.y, config::row, config::column, board))
-        return 1;
+        return true;
     if (isTie(config::column, tops))
-        return 0;
+        return true;
 
-    return 2;
+    return false;
 }
 
 static std::pair<int, int> checkBoard(int* board, int* tops) {
 	int rival_pos = -1;
 	int self_pos = -1;
-	for (int i = 0; i < config::column; ++i) {
+	for (uint32_t i = 0; i < config::column; ++i) {
 		if (tops[i] > 0) {
 			int newY = i;
 			int newX = tops[newY] - 1;
@@ -71,22 +78,51 @@ Point UCTTree::search(int* originBoard, int* originTops, Point lastpos) {
 	};
 
     Timer t;
-    while (t.elapsed() < 1) {
+    while (t.elapsed() < max_search_time) {
         Node* selected = getTargetNode(root);
 		double profit = 0.0;
-		for (int i = 0; i < 20; ++i) {
-			profit = monteCarlo(selected) * 0.05;
-		}
+		
+		// for (int i = 0; i < 20; ++i) {
+		profit = monteCarlo(selected);
+		// }
         selected->update(profit);
 		// _cprintf("selected node with pos:%d %d, profit is %lf\n", selected->pos.x, selected->pos.y, profit);
     }
+	uint32_t maxVisited = 0;
+	Node* target = nullptr;
+
 #ifndef CUSTOM_MAIN
-	for (int i = 0; i < config::column; ++i) {
-		Node* n = root->child[i];
-		_cprintf("child %d, %d: %d %lf\n", n->pos.x, n->pos.y, n->cnt, n->profit);
-	}
+		_cprintf("==========RESULT:=========\n");
 #endif
-    return root->selectChild(0.0)->pos;
+
+	for (uint32_t i = 0; i < config::column; ++i) {
+		Node* n = root->child[i];
+
+#ifndef CUSTOM_MAIN
+		if (n)
+			_cprintf("child %d, %d: %d %lf\n", n->pos.x, n->pos.y, n->cnt, n->profit);
+		else
+			_cprintf("child %d is null", i);
+#endif
+
+		if (n && (n->cnt > maxVisited)) {
+			auto check_next_place = checkBoard(n->board, n->tops);
+			if (check_next_place.first >= 0)
+				continue;
+			maxVisited = n->cnt;
+			target = n;
+		}
+	}
+	if (!target) {
+
+#ifndef CUSTOM_MAIN
+		_cprintf("there is no result, debug!");
+#endif
+
+		return root->child[0]->pos;
+	} else {
+		return target->pos;
+	}
 }
 
 Node* UCTTree::getTargetNode(Node* base) const {
@@ -95,7 +131,7 @@ Node* UCTTree::getTargetNode(Node* base) const {
         if (cur->expandable()) {
             return cur->expand();
         } else {
-            cur = cur->selectChild(0.9);
+            cur = cur->selectChild(ucb_coefficient);
         }
     }
 
@@ -111,11 +147,12 @@ double UCTTree::monteCarlo(Node* base) const {
     std::memcpy(fakeTops, base->tops, config::column * sizeof(int));
 
     Point lastpos = base->pos;
-    Player curP = base->player;
+    Player curP = revert(base->player);
+	// int depth = 0;
 
-    double profit = getProfit(fakeBoard, fakeTops, lastpos, revert(curP));
-
-    while (profit == 2) {
+    while (!checkEnd(fakeBoard, fakeTops, lastpos, curP)) {
+		// depth++;
+        curP = revert(curP);
         int newY = rand() % config::column;
         while (fakeTops[newY] == 0)
             newY = rand() % config::column;
@@ -128,12 +165,17 @@ double UCTTree::monteCarlo(Node* base) const {
             fakeTops[newY]--;
 
         lastpos = {newX, newY};
-        profit = getProfit(fakeBoard, fakeTops, lastpos, curP);
-        curP = revert(curP);
     }
 
-    delete []fakeBoard;
-    delete []fakeTops;
+	double retval;
+	if (isTie(config::column, fakeTops))
+		retval = 0;
+	else
+		retval = (base->player == curP ? 1 : -1);
 
-    return profit;
+	delete []fakeBoard;
+	delete []fakeTops;
+
+	// return retval / std::pow(10, depth);
+	return retval;
 }

@@ -86,7 +86,7 @@ Node* Node::selectChild(double coefficient) const {
         if (child[i]) {
             int visited = child[i]->cnt;
             double cprofit = child[i]->profit;
-            double temp = cprofit / visited + std::sqrt(2 * std::log(cnt) / visited) * coefficient;
+			double temp = - cprofit / visited + std::sqrt(2 * std::log(cnt) / visited) * coefficient;
 
             if (temp > maxProfit) {
                 maxProfit = temp;

@@ -8,7 +8,9 @@ class Timer {
 public:
     Timer() : start_time(std::clock()) {}
     double elapsed() const {
-        return double(std::clock() - start_time) / CLOCKS_PER_SEC;
+        return 
+			(static_cast<double>(std::clock()) - static_cast<double>(start_time)) 
+			/ CLOCKS_PER_SEC;
     }
 };
 #endif
