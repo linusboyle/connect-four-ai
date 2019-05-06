@@ -1,6 +1,7 @@
 #include "node.hpp"
 #include "judge.hpp"
-#include "mempool.hpp"
+#include "game.hpp"
+// #include "mempool.hpp"
 
 #include <cstdlib>
 #include <cmath>
@@ -40,27 +41,27 @@ Node* Node::expand() {
     Player newPlayer = revert(player);
     int index = rand() % expandableCnt;
 
-    int* newBoard = new int[config::row * config::column];
-    int* newTop = new int[config::column];
-    std::memcpy(newBoard, board, config::row * config::column * sizeof(int));
-    std::memcpy(newTop, tops, config::column * sizeof(int));
+    int* newBoard = new int[row() * column()];
+    int* newTop = new int[column()];
+    std::memcpy(newBoard, board, row() * column() * sizeof(int));
+    std::memcpy(newTop, tops, column() * sizeof(int));
 
     int newY = expandableIndex[index];
     int newX = --newTop[newY];
 
-    newBoard[newX * config::column + newY] = toCode(player);
+    newBoard[newX * column() + newY] = toCode(player);
 
-    if (newX - 1 == config::nopos.x && newY == config::nopos.y) {
+    if (newX - 1 == nopos().x && newY == nopos().y) {
         newTop[newY]--;
     }
 
 	bool isleaf = false;
     switch (player) {
     case Player::P_SELF:
-        isleaf = machineWin(newX, newY, config::row, config::column, newBoard) || isTie(config::column, newTop);
+        isleaf = machineWin(newX, newY, row(), column(), newBoard) || isTie(column(), newTop);
 		break;
     case Player::P_RIVAL:
-        isleaf = userWin(newX, newY, config::row, config::column, newBoard) || isTie(config::column, newTop);
+        isleaf = userWin(newX, newY, row(), column(), newBoard) || isTie(column(), newTop);
 		break;
     default:
         throw new unexpected_player();
@@ -82,7 +83,7 @@ Node* Node::selectChild(double coefficient) const {
     Node* retval { nullptr };
 
     double maxProfit = std::numeric_limits<double>::lowest();
-    for (uint32_t i = 0; i < config::column; ++i) {
+    for (int i = 0; i < column(); ++i) {
         if (child[i]) {
             int visited = child[i]->cnt;
             double cprofit = child[i]->profit;

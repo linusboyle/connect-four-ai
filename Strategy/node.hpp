@@ -1,8 +1,7 @@
 #ifndef NODE_HPP
 #define NODE_HPP
 
-#include "config.hpp"
-#include <cstddef>
+#include "game.hpp"
 
 enum class Player {
     P_RIVAL,
@@ -19,10 +18,10 @@ struct Node {
     Point pos; // position of the last placed chess
     Node* parent; // parent node
 
-    uint32_t cnt;
+    int cnt;
     double profit;
-    uint32_t expandableCnt;
-    uint32_t* expandableIndex;
+    int expandableCnt;
+    int* expandableIndex;
 
     Node** child; // children
 
@@ -30,9 +29,9 @@ struct Node {
     
     Node(int* board, int* tops, Player player, Point pos, Node* parent, bool isleaf):
         board(board), tops(tops), player(player), pos(pos), parent(parent),
-        cnt(0), profit(0.0), expandableCnt(0), expandableIndex(new uint32_t[config::column]),
-        child(new Node*[config::column]), isleaf(isleaf) {
-            for (uint32_t i = 0; i < config::column; ++i) {
+        cnt(0), profit(0.0), expandableCnt(0), expandableIndex(new int[column()]),
+        child(new Node*[column()]), isleaf(isleaf) {
+            for (int i = 0; i < column(); ++i) {
                 if (tops[i] > 0) {
                     expandableIndex[expandableCnt++] = i;
                 }
@@ -44,11 +43,12 @@ struct Node {
         delete []board;
         delete []tops;
         delete []expandableIndex;
-        for (uint32_t i = 0; i < config::column; ++i) {
+        for (int i = 0; i < column(); ++i) {
             if (child[i]) {
                 delete child[i];
             }
         }
+		delete []child;
     }
 
     bool expandable () const {

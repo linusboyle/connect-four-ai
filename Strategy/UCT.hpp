@@ -1,24 +1,23 @@
 #ifndef UCT_HPP
 #define UCT_HPP
 
-#include "config.hpp"
-
-struct Node;
+#include "node.hpp"
 
 class UCTTree {
     Node* root;
 
     Node* getTargetNode(Node* base) const;
-    double monteCarlo(Node* base) const;
+    double simulate(Node* base) const;
+
 public:
-    UCTTree(int row, int column, Point nopos) : root(nullptr) {
-        config::row = row;
-        config::column = column;
-        config::nopos = nopos;
-    }
+	UCTTree(int* initBoard, int* initTops) : 
+		root(new Node{ initBoard, initTops, Player::P_SELF, {-1, -1}, nullptr, false })
+	{
+	}
 
     ~UCTTree();
 
-	Point search(int* originBoard, int* originTops, Point lastpos);
+	bool advanceRoot(Point lastAction);
+	Point next();
 };
 #endif

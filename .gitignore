@@ -341,3 +341,5 @@ healthchecksdb
 /Strategy/chess
 /Strategy/main.cpp
 *.exe
+/compete
+/TestCases
