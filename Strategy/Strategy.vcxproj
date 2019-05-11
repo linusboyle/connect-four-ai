@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -14,6 +14,7 @@
     <ProjectGuid>{CC9130DD-7158-4E02-AA8F-1CBAC564F4A8}</ProjectGuid>
     <RootNamespace>Strategy</RootNamespace>
     <Keyword>Win32Proj</Keyword>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
@@ -49,6 +50,7 @@
     <OutDir>$(SolutionDir)$(Configuration)\</OutDir>
     <IntDir>$(Configuration)\</IntDir>
     <LinkIncremental>false</LinkIncremental>
+    <TargetExt>.dll</TargetExt>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -87,23 +89,23 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="debug.cpp" />
+    <ClCompile Include="base.cpp" />
+    <ClCompile Include="board.cpp" />
     <ClCompile Include="game.cpp" />
-    <ClCompile Include="judge.cpp" />
     <ClCompile Include="node.cpp" />
     <ClCompile Include="Strategy.cpp" />
     <ClCompile Include="UCT.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="base.hpp" />
+    <ClInclude Include="board.hpp" />
     <ClInclude Include="game.hpp" />
-    <ClInclude Include="judge.hpp" />
     <ClInclude Include="mempool.hpp" />
     <ClInclude Include="node.hpp" />
     <ClInclude Include="point.hpp" />
     <ClInclude Include="Strategy.h" />
     <ClInclude Include="timer.hpp" />
     <ClInclude Include="UCT.hpp" />
-    <ClInclude Include="debug.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

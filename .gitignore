@@ -338,7 +338,6 @@ ASALocalRun/
 
 # BeatPulse healthcheck temp database
 healthchecksdb
-/Strategy/chess
 /Strategy/main.cpp
 *.exe
 /compete

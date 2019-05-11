@@ -1,80 +1,37 @@
 #include "node.hpp"
-#include "judge.hpp"
-#include "game.hpp"
-// #include "mempool.hpp"
+#include "mempool.hpp"
+#include <stdexcept>
 
 #include <cstdlib>
 #include <cmath>
-#include <cstring>
 #include <limits>
 #include <utility>
-#include <exception>
 
-class unexpected_player : std::exception {
-public:
-    virtual const char* what() { return "invalid Player";}
-};
-
-Player revert(Player state) {
-    switch (state) {
-    case Player::P_SELF:
-        return Player::P_RIVAL;
-    case Player::P_RIVAL:
-        return Player::P_SELF;
-    default:
-        throw new unexpected_player();
-    }
-}
-
-int toCode(Player state) {
-    switch (state) {
-    case Player::P_SELF:
-        return 2;
-    case Player::P_RIVAL:
-        return 1;
-    default:
-        throw new unexpected_player();
-    }
-}
+Node::Node(Player player, Point pos, Node* parent, bool isleaf) :
+	player(player), pos(pos), parent(parent),
+	cnt(0), profit(0.0), expandableCnt(0),
+	isleaf(isleaf) {
+		Board& b = Game::instance().getBoard();
+		for (int i = 0; i < column(); ++i) {
+			if (b.valid(i)) {
+				expandableIndex[expandableCnt++] = i;
+			}
+			child[i] = nullptr;
+		}
+	}
 
 Node* Node::expand() {
+	Board& b = Game::instance().getBoard();
+
     Player newPlayer = revert(player);
     int index = rand() % expandableCnt;
-
-    int* newBoard = new int[row() * column()];
-    int* newTop = new int[column()];
-    std::memcpy(newBoard, board, row() * column() * sizeof(int));
-    std::memcpy(newTop, tops, column() * sizeof(int));
-
     int newY = expandableIndex[index];
-    int newX = --newTop[newY];
+    int newX = b.getTop(newY)-1;
 
-    newBoard[newX * column() + newY] = toCode(player);
+	b.placeChess({ newX, newY }, player);
 
-    if (newX - 1 == nopos().x && newY == nopos().y) {
-        newTop[newY]--;
-    }
-
-	bool isleaf = false;
-    switch (player) {
-    case Player::P_SELF:
-        isleaf = machineWin(newX, newY, row(), column(), newBoard) || isTie(column(), newTop);
-		break;
-    case Player::P_RIVAL:
-        isleaf = userWin(newX, newY, row(), column(), newBoard) || isTie(column(), newTop);
-		break;
-    default:
-        throw new unexpected_player();
-    }
-
-    child[newY] = new Node {
-        newBoard, newTop, newPlayer, 
-        {newX, newY}, 
-        this,
-		isleaf
-    };
-
-    std::swap(expandableIndex[index], expandableIndex[--expandableCnt]);
+	child[newY] = new Node(newPlayer, { newX, newY }, this, b.isEnd());
+	std::swap(expandableIndex[index], expandableIndex[--expandableCnt]);
 
     return child[newY];
 }
@@ -96,6 +53,8 @@ Node* Node::selectChild(double coefficient) const {
         }
     }
 
+	if (!retval)
+		throw std::invalid_argument("null child");
     return retval;
 }
 
@@ -109,10 +68,10 @@ void Node::update(double delta) {
     }
 }
 
-//void* Node::operator new(std::size_t size) {
-//    return MemPool<Node>::get();
-//}
-//
-//void Node::operator delete(void* doomed, std::size_t size) {
-//    MemPool<Node>::push(doomed);
-//}
+void* Node::operator new(std::size_t size) {
+    return MemPool<Node>::instance().get();
+}
+
+void Node::operator delete(void* doomed, std::size_t size) {
+    MemPool<Node>::instance().push(doomed);
+}
